@@ -38,7 +38,7 @@ The short build version (CFBundleShortVersionString) will look like this:
 The build version (CFBundleVersion) will look like this:
 
 ```
-1.2.3.abc1234 (2023-05-10 10:23:45 +0200)
+1.2.3.abc1234
 ```
 
 The build date (BuildDate) will look like this:
