@@ -29,19 +29,19 @@ Note: If your project has multiple targets, you will need to add this script to 
 
 ## How it looks
 
-The short build version (CFBundleShortVersionString) will look like this:
+The short build version (`CFBundleShortVersionString`) will look like this:
 
 ```
 1.2.3
 ```
 
-The build version (CFBundleVersion) will look like this:
+The build version (`CFBundleVersion`) will look like this:
 
 ```
 1.2.3.abc1234
 ```
 
-The build date (BuildDate) will look like this:
+The build date (`BuildDate`) will look like this:
 
 ```
 2023-05-10 10:23:45 +0200
