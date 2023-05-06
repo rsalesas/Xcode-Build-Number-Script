@@ -32,7 +32,7 @@ Note: If your project has multiple targets, you will need to add this script to 
 The build version will look like this:
 
 ```
-Example Build Version: 1.2.3.abc1234 (2023-05-10 10:23:45 +0200)
+1.2.3.abc1234 (2023-05-10 10:23:45 +0200)
 ```
 
 This represents a version number of `1.2.3` with a Git commit hash of `abc1234`, and a build date of `2023-05-10 10:23:45 +0200`.
