@@ -1,55 +1,57 @@
 #!/bin/bash
 
-# Get the major and minor version numbers from the Info.plist file, or set them to 1 and 0 if they don't exist
-majorVersion=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$INFOPLIST_FILE" 2>/dev/null | awk -F "." '{print $1}')
-if [[ -z "$majorVersion" ]]; then
-    majorVersion=1
+# Set the path to the source Info.plist file
+SRC_INFO_PLIST="${PROJECT_DIR}/${PROJECT_NAME}/Info.plist"
+
+# Set the path to the destination Info.plist file
+DST_INFO_PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
+
+# Get the current build number from the source Info.plist file
+CURRENT_BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "${SRC_INFO_PLIST}")
+
+# Increment the build number by 1
+NEW_BUILD_NUMBER=$(($CURRENT_BUILD_NUMBER + 1))
+
+# Update the build number in the source Info.plist file
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD_NUMBER" "${SRC_INFO_PLIST}"
+
+# If the build number doesn't exist in the source Info.plist file, add it
+if [ $? -ne 0 ]; then
+    /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $NEW_BUILD_NUMBER" "${SRC_INFO_PLIST}"
 fi
 
-minorVersion=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$INFOPLIST_FILE" 2>/dev/null | awk -F "." '{print $2}')
-if [[ -z "$minorVersion" ]]; then
-    minorVersion=0
+# Get the current version number from the source Info.plist file
+CURRENT_VERSION_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "${SRC_INFO_PLIST}")
+
+# Increment the patch number of the version number by 1
+IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION_NUMBER"
+
+# Set the major version to 1 if it doesn't exist
+MAJOR="${VERSION_PARTS[0]}"
+if [ -z "$MAJOR" ]; then
+    MAJOR=1
 fi
 
-# Get the patch version number from the Info.plist file, or set it to 0 if it doesn't exist
-buildNumber=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$INFOPLIST_FILE" 2>/dev/null | awk -F "." '{print $3}')
-if [[ -z "$buildNumber" ]]; then
-    buildNumber=0
-else
-    # Increment the patch version number if it exists
-    buildNumber=$(($buildNumber + 1))
+# Set the minor version to 0 if it doesn't exist
+MINOR="${VERSION_PARTS[1]}"
+if [ -z "$MINOR" ]; then
+    MINOR=0
 fi
 
-# Get the abbreviated Git commit hash
-gitCommitHash=$(git rev-parse --short HEAD)
+PATCH=$((${VERSION_PARTS[2]} + 1))
+NEW_VERSION_NUMBER="$MAJOR.$MINOR.$PATCH"
 
-# Set the version number in the Info.plist file
-versionNumber="$majorVersion.$minorVersion.$buildNumber"
-if /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$INFOPLIST_FILE" >/dev/null 2>&1; then
-    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $versionNumber" "$INFOPLIST_FILE"
-else
-    /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $versionNumber" "$INFOPLIST_FILE"
+# Update the version number in the source Info.plist file
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $NEW_VERSION_NUMBER" "${SRC_INFO_PLIST}"
+
+# If the version number doesn't exist in the source Info.plist file, add it
+if [ $? -ne 0 ]; then
+    /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $NEW_VERSION_NUMBER" "${SRC_INFO_PLIST}"
 fi
 
-# Set the build number in the Info.plist file
-buildString="$majorVersion.$minorVersion.$buildNumber.$gitCommitHash"
-if /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$INFOPLIST_FILE" >/dev/null 2>&1; then
-    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $buildString" "$INFOPLIST_FILE"
-else
-    /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $buildString" "$INFOPLIST_FILE"
-fi
+# Update the build number and version number in the destination Info.plist file
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD_NUMBER" "${DST_INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $NEW_VERSION_NUMBER" "${DST_INFO_PLIST}"
 
-# Get the build date from the Info.plist file, or set it to today's date if it doesn't exist
-buildDate=$(/usr/libexec/PlistBuddy -c "Print BuildDate" "$INFOPLIST_FILE" 2>/dev/null)
-if [[ -z "$buildDate" ]]; then
-    buildDate=$(date +"%Y-%m-%d %H:%M:%S %z")
-fi
-
-# Set the build date in the Info.plist file
-if /usr/libexec/PlistBuddy -c "Print :BuildDate" "$INFOPLIST_FILE" >/dev/null 2>&1; then
-    /usr/libexec/PlistBuddy -c "Set :BuildDate $buildDate" "$INFOPLIST_FILE"
-else
-    /usr/libexec/PlistBuddy -c "Add :BuildDate string $buildDate" "$INFOPLIST_FILE"
-fi
-
-echo "Updated version number to $versionNumber ($buildString) with build date $buildDate"
+# Output what was updated
+echo "Updated build number to ${NEW_BUILD_NUMBER} and version number to ${NEW_VERSION_NUMBER}."
