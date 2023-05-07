@@ -10,8 +10,9 @@ The script is a bash script that uses the `PlistBuddy` tool to read and modify v
 
 When you run the script, it performs the following steps:
 
-1. Reads the major and minor version numbers from the Info.plist file
-2. Increments the patch version number and updates the version number in the Info.plist file
+1. Reads the build number from the Info.plist file
+2. Reads the major, minor, and patch version numbers from the Info.plist file
+2. Increments the patch version number and the build number, and updates the Info.plist file
 
 ## How to activate the script
 
